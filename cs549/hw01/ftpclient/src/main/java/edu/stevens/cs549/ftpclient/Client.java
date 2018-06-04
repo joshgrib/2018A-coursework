@@ -126,9 +126,11 @@ public class Client {
 			
 			/*
 			 * TODO: Get a server proxy.
+			 * Done?
 			 */
-			
-			IServer server = null;
+			Registry reg = LocateRegistry.getRegistry(serverAddr, serverPort);
+			IServerFactory serverFact = (IServerFactory) reg.lookup(serverAddr);
+			IServer server = serverFact.createServer();
 			
 			/*
 			 * Start CLI.  Second argument should be server proxy.
@@ -302,8 +304,18 @@ public class Client {
 				try {
 					/*
 					 * TODO: Complete this thread.
+					 * Done?
 					 */
 					Socket xfer = dataChan.accept();
+					BufferedInputStream inStream = new BufferedInputStream(xfer.getInputStream());
+					byte[] block = new byte[1024];
+
+					int reads = 0;
+					while ((reads = inStream.read(block)) > 0) {
+						file.write(block, 0, reads);
+					}
+					inStream.close();
+					file.close();
 
 					/*
 					 * End TODO
@@ -324,7 +336,16 @@ public class Client {
 						Socket xfer = new Socket(serverAddress, serverSocket.getPort());
 						/*
 						 * TODO: connect to server socket to transfer file.
+						 * Done?
 						 */
+						BufferedInputStream inStream = new BufferedInputStream(xfer.getInputStream());
+						byte[] block = new byte[1024];
+						int reads = 0;
+						while((reads = inStream.read(block)) > 0) {
+							file.write(block, 0, reads);
+						}
+						file.close();
+						if (inStream !- null) inStream.close();
 					} else if (mode == Mode.ACTIVE) {
 						FileOutputStream f = new FileOutputStream(inputs[1]);
 						new Thread(new GetThread(dataChan, f)).start();
@@ -343,7 +364,29 @@ public class Client {
 				try {
 					/*
 					 * TODO: Finish put (both ACTIVE and PASSIVE mode supported).
+					 * Done?
 					 */
+					if (mode == Mode.ACTIVE) {
+						FileInputStream inStream = new FileInputStream(inputs[1]);
+						new Thread(new PutThread(dataChan, file)).start();
+						svr.put(inputs[1]);
+					} else {
+						Socker xfer = new Socket(serverAddr, serverSocket.getPort());
+						svr.put(inputs[1]);
+						BufferedOutputStream outStream = new BufferedOutputStream(xfer.getOutputStream());
+						FileInputStream fInStream = new FileInputStream(inputs[1]);
+						BufferedInputStream inStream = new BufferedInputStream(fInStream);
+
+						byte[] block = new byte[1024];
+						int reads = 0;
+						while ((reads = inStream.reads(block)) > 0) {
+							outStream.write(block, 0, reads);
+						}
+
+						if (outStream != null) outStream.close();
+						if (inStream != null) inStream.close();
+						fInStream.close();
+					}
 				} catch (Exception e) {
 					err(e);
 				}

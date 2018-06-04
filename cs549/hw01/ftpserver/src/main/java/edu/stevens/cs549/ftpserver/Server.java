@@ -109,7 +109,23 @@ public class Server extends UnicastRemoteObject
     	public void run () {
     		/*
     		 * TODO: Process a client request to transfer a file.
+             * Done?
     		 */
+            try {
+                Socket xfer = dataChan.accept();
+                BufferedOutputStream outStream = new BufferedOutputStream(xfer.getOutputStream());
+                BufferedInputStream inStream = new BufferedInputStream(file);
+                byte[] block = new byte[1024];
+                int reads = 0;
+                while ((reads = inStream.read(block)) > 0) {
+                    outStream.write(block, 0, reads);
+                }
+                if (outStream != null) outStream.close();
+                if (inStream != null) inStream.close();
+                file.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     	}
     }
     
@@ -120,8 +136,19 @@ public class Server extends UnicastRemoteObject
         	Socket xfer = new Socket (clientSocket.getAddress(), clientSocket.getPort());
         	/*
         	 * TODO: connect to client socket to transfer file.
+             * Done?
         	 */
-        	InputStream in = new FileInputStream(path()+file);
+            InputStream fStream = new FileInputStream(path()+file);
+            BufferedOutputStream outStream = new BufferedOutputStream(xfer.GetOutputStream());
+            BufferedInputStream inStream = new BufferedInputStream(fStream);
+            byte[] block = new byte[1024];
+            int reads = 0;
+            while ((reads = inStream.read(block)) > 0) {
+                outStream.write(block, 0, reads);
+            }
+            if (inStream != null) inStream.close();
+            if (outStream != null) outStream.close();
+            fStream.close();
 
         	/*
 			 * End TODO.
@@ -131,11 +158,56 @@ public class Server extends UnicastRemoteObject
             new Thread (new GetThread(dataChan, f)).start();
         }
     }
+
+    private static class PutThread implements Runnable {
+    	private ServerSocket dataChan = null;
+    	private FileOutputStream file = null;
+    	public PutThread (ServerSocket s, FileOutputStream f) { dataChan = s; file = f; }
+    	public void run () {
+    		/*
+    		 * TODO: Process a client request to upload a file.
+             * Done?
+    		 */
+            try {
+                Socket xfer = dataChan.accept();
+                BufferedInputStream inStream = new BufferedInputStream(xfr.getInputStream());
+                
+                FileOutputStream fStream = file;
+                byte[] block = new byte[1024];
+                int reads = 0;
+                while ((reads = inStream.read(block)) > 0) {
+                    fStream.write(block, 0, reads);
+                }
+
+                file.close();
+                if (inStream != null) inStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+    	}
+    }
     
     public void put (String file) throws IOException, FileNotFoundException, RemoteException {
     	/*
     	 * TODO: Finish put (both ACTIVE and PASSIVE).
     	 */
+        if (mode == Mode.ACTIVE) {
+            Socket xfer = new Socket(clientSocket.getAddress(), clientSocket.getPort());
+            BufferedInputStream inStream = new BufferedInputStream(xfer.getInputStream());
+            FileOutputStream outStream = new FileOutputStream(path()+file);
+
+            int reads = 0;
+            byte[] bytes = new byte[1024];
+            while ((reads = inStream.read(bytes)) > 0) {
+                fOut.write(bytes, 0, reads);
+            }
+
+            outStream.close();
+            if (inStream != null) inStream.close();
+        } else if (mode == Mode.PASSIVE) {
+            FileOutputStream outStream = new FileOutputStream(path()+file);
+            new Thread(new PutThread(dataChan, f)).start();
+        }
     }
     
     public String[] dir () throws RemoteException {

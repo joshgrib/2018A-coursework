@@ -9,6 +9,9 @@ import java.io.BufferedReader;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,6 +20,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -27,6 +32,7 @@ import java.util.logging.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import edu.stevens.cs549.ftpinterface.IServer;
+import edu.stevens.cs549.ftpinterface.IServerFactory;
 
 /**
  * 
@@ -128,8 +134,8 @@ public class Client {
 			 * TODO: Get a server proxy.
 			 * Done?
 			 */
-			Registry reg = LocateRegistry.getRegistry(serverAddr, serverPort);
-			IServerFactory serverFact = (IServerFactory) reg.lookup(serverAddr);
+			Registry reg = LocateRegistry.getRegistry(serverName, serverPort);
+			IServerFactory serverFact = (IServerFactory) reg.lookup(serverName);
 			IServer server = serverFact.createServer();
 			
 			/*
@@ -342,10 +348,11 @@ public class Client {
 						byte[] block = new byte[1024];
 						int reads = 0;
 						while((reads = inStream.read(block)) > 0) {
-							file.write(block, 0, reads);
+							f.write(block, 0, reads);
 						}
-						file.close();
-						if (inStream !- null) inStream.close();
+						f.close();
+						if (inStream != null) inStream.close();
+						if (xfer != null) xfer.close();
 					} else if (mode == Mode.ACTIVE) {
 						FileOutputStream f = new FileOutputStream(inputs[1]);
 						new Thread(new GetThread(dataChan, f)).start();
@@ -368,10 +375,11 @@ public class Client {
 					 */
 					if (mode == Mode.ACTIVE) {
 						FileInputStream inStream = new FileInputStream(inputs[1]);
-						new Thread(new PutThread(dataChan, file)).start();
+						//TODO: uncomment this?
+						//new Thread(new PutThread(dataChan, inStream)).start();
 						svr.put(inputs[1]);
 					} else {
-						Socker xfer = new Socket(serverAddr, serverSocket.getPort());
+						Socket xfer = new Socket(serverAddress, serverSocket.getPort());
 						svr.put(inputs[1]);
 						BufferedOutputStream outStream = new BufferedOutputStream(xfer.getOutputStream());
 						FileInputStream fInStream = new FileInputStream(inputs[1]);
@@ -379,7 +387,7 @@ public class Client {
 
 						byte[] block = new byte[1024];
 						int reads = 0;
-						while ((reads = inStream.reads(block)) > 0) {
+						while ((reads = inStream.read(block)) > 0) {
 							outStream.write(block, 0, reads);
 						}
 

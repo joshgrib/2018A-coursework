@@ -2,6 +2,9 @@ package edu.stevens.cs549.ftpserver;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -139,7 +142,7 @@ public class Server extends UnicastRemoteObject
              * Done?
         	 */
             InputStream fStream = new FileInputStream(path()+file);
-            BufferedOutputStream outStream = new BufferedOutputStream(xfer.GetOutputStream());
+            BufferedOutputStream outStream = new BufferedOutputStream(xfer.getOutputStream());
             BufferedInputStream inStream = new BufferedInputStream(fStream);
             byte[] block = new byte[1024];
             int reads = 0;
@@ -170,7 +173,7 @@ public class Server extends UnicastRemoteObject
     		 */
             try {
                 Socket xfer = dataChan.accept();
-                BufferedInputStream inStream = new BufferedInputStream(xfr.getInputStream());
+                BufferedInputStream inStream = new BufferedInputStream(xfer.getInputStream());
                 
                 FileOutputStream fStream = file;
                 byte[] block = new byte[1024];
@@ -199,14 +202,14 @@ public class Server extends UnicastRemoteObject
             int reads = 0;
             byte[] bytes = new byte[1024];
             while ((reads = inStream.read(bytes)) > 0) {
-                fOut.write(bytes, 0, reads);
+                outStream.write(bytes, 0, reads);
             }
 
             outStream.close();
             if (inStream != null) inStream.close();
         } else if (mode == Mode.PASSIVE) {
             FileOutputStream outStream = new FileOutputStream(path()+file);
-            new Thread(new PutThread(dataChan, f)).start();
+            new Thread(new PutThread(dataChan, outStream)).start();
         }
     }
     

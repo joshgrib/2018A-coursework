@@ -42,7 +42,7 @@
 		<client.name>ftp</client.name>
 
 		<!-- Where to distribute jar files (using mvn package). -->
-		<client.dist>${user.home}/tmp/cs549/ftp-test</client.dist>
+		<client.dist>C:/Users/jgribbon/_code/2018A-coursework/cs549/hw01/tmp/cs549/ftp-test</client.dist>
 		<server.dist>${client.dist}</server.dist>
 
 	</properties>
@@ -97,7 +97,7 @@
 				</property>
 			</activation>
 			<properties>
-				<client.home>${user.home}</client.home>
+				<client.home>C:/Users/jgribbon/_code/2018A-coursework/cs549/hw01</client.home>
 				<!-- If testing server on Windoze, this will have to be modified to ensure 
 					the path does not contain spaces, otherwise RMI will barf during stack inspection. -->
 				<client.testdir>${client.home}/tmp/cs549/ftp-test</client.testdir>
